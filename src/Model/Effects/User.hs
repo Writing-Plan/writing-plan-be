@@ -2,7 +2,10 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 
-module Model.Effects.User (User, initUserTable, isEmailAvail, addUser, checkUser, UserC, runUser) where
+module Model.Effects.User
+  ( User, initUserTable, isEmailAvail, addUser, checkUser
+  , UserC, runUser
+  ) where
 
 import           Control.Algebra
 import           Control.Monad.IO.Class (MonadIO)
@@ -20,9 +23,6 @@ data User (m :: Type -> Type) k where
   AddUser       :: Email -> Username -> Password -> User m (Maybe UserID)
   CheckUser     :: Email -> Password -> User m (Maybe (UserID, Username))
 
--- initUserTable :: Has User sig m => m Bool
--- initUserTable = send InitUserTable
-
 sendAll ''User
 
 newtype UserC m a = UserC { runUserC :: m a }
@@ -37,17 +37,17 @@ instance Has PG sig m => Algebra (User :+: sig) (UserC m) where
     L user -> (ctx $>) <$> case user of
       InitUserTable -> initTable "user_table"
         "CREATE TABLE user_table ( \
-        \   user_id   serial  PRIMARY KEY, \
-        \   email     text    NOT NULL UNIQUE, \
-        \   username  text    NOT NULL, \
-        \   passwd    bytea   NOT NULL \
+        \  user_id   serial  PRIMARY KEY, \
+        \  email     text    NOT NULL UNIQUE, \
+        \  username  text    NOT NULL, \
+        \  passwd    bytea   NOT NULL \
         \);"
       IsEmailAvail email' -> fmap Prelude.null . select $ do
         User{..} <- selectTable userTable
         where_ $ email .=== toFields email'
       AddUser email name passwd -> fmap listToMaybe . insert $ Insert
         { iTable      = userTable
-        , iRows       = [toFields @UserW User{userID = Nothing, ..}]
+        , iRows       = [toFields @UserW $ User {userID = Nothing, ..}]
         , iReturning  = rReturning userID
         , iOnConflict = Just DoNothing
         }

@@ -8,10 +8,11 @@ import           Data.Int                   (Int64)
 import           Data.Profunctor.Product.TH (makeAdaptorAndInstance)
 import           Data.Text                  (Text)
 import           Model.FamilyF              (F)
-import           Model.TH                   (genNewtypeT, makeTypeInstanceFWR)
+import           Model.TH
 import           Opaleye
 
 type Username = Text
+type Url = Text
 
 type instance F Bool = Column SqlBool
 type instance F Text = Column SqlText
@@ -50,27 +51,21 @@ userTable = table "user_table" $ pUser User
   }
 
 
-genNewtypeT "BloggerID" ''Int64 ''SqlInt8
-makeAdaptorAndInstance "pBloggerID" ''BloggerIDT
-
-data BloggerT a b c d
+data BloggerT a b c
   = Blogger              -- ^ @TABLE blogger_table@
-    { bloggerID     :: a -- ^ @blogger_id serial PRIMARY KEY@
-    , bloggerUserID :: b -- ^ @blogger_user_id int REFERENCES user_table(user_id)@
-    , blogUrl       :: c -- ^ @blogger_url text NOT NULL UNIQUE@
-    , allowComments :: d -- ^ @allow_comments boolean NOT NULL@
+    { bloggerID     :: a -- ^ @blogger_id int PRIMARY KEY REFERENCES user_table(user_id)@
+    , blogUrl       :: b -- ^ @blogger_url text NOT NULL UNIQUE@
+    , allowComments :: c -- ^ @allow_comments boolean NOT NULL@
     }
 
 makeAdaptorAndInstance "pBlogger" ''BloggerT
 
-type BloggerW = BloggerT (Maybe BloggerID) UserID Text Bool
-type BloggerR = BloggerT BloggerID         UserID Text Bool
-makeTypeInstanceFWR "Blogger"
+type Blogger_ = BloggerT UserID Url Bool
+makeTypeInstanceF ''Blogger_
 
-bloggerTable :: Table (F BloggerW) (F BloggerR)
+bloggerTable :: Table (F Blogger_) (F Blogger_)
 bloggerTable = table "blogger_table" $ pBlogger Blogger
-  { bloggerID     = pBloggerID $ BloggerID (tableField "blogger_id")
-  , bloggerUserID = pUserID    $ UserID    (tableField "blogger_user_id")
+  { bloggerID     = pUserID    $ UserID    (tableField "blogger_user_id")
   , blogUrl       = tableField "blog_url"
   , allowComments = tableField "allow_comments"
   }

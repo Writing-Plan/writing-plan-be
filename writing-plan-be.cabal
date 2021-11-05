@@ -26,6 +26,7 @@ source-repository head
 
 library
   exposed-modules:
+      Model.Effects.Blogger
       Model.Effects.PG
       Model.Effects.TH
       Model.Effects.User
