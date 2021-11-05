@@ -29,6 +29,7 @@ library
       Model.Effects.PG
       Model.Effects.TH
       Model.Effects.User
+      Model.FamilyF
       Model.TH
       Model.Type
   other-modules:
@@ -70,7 +71,7 @@ library
       TypeFamilies
       TypeFamilyDependencies
       TypeOperators
-  ghc-options: -j -O -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat -Wincomplete-record-updates -Wredundant-constraints -Wno-unused-do-bind
+  ghc-options: -j -O -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat -Wincomplete-record-updates -Wredundant-constraints -Wno-unused-do-bind -Wno-orphans
   build-depends:
       aeson
     , base >=4.7 && <5
@@ -136,7 +137,7 @@ executable writing-plan-be
       TypeFamilies
       TypeFamilyDependencies
       TypeOperators
-  ghc-options: -j -O -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat -Wincomplete-record-updates -Wredundant-constraints -Wno-unused-do-bind
+  ghc-options: -j -O -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat -Wincomplete-record-updates -Wredundant-constraints -Wno-unused-do-bind -Wno-orphans
   build-depends:
       aeson
     , base >=4.7 && <5

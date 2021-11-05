@@ -37,7 +37,7 @@ instance Has PG sig m => Algebra (User :+: sig) (UserC m) where
     L user -> (ctx $>) <$> case user of
       InitUserTable -> initTable "user_table"
         "CREATE TABLE user_table ( \
-        \   userid    serial  PRIMARY KEY, \
+        \   user_id   serial  PRIMARY KEY, \
         \   email     text    NOT NULL UNIQUE, \
         \   username  text    NOT NULL, \
         \   passwd    bytea   NOT NULL \
