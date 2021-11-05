@@ -1,0 +1,97 @@
+name:                writing-plan-be
+version:             0.1.0.0
+github:              "githubuser/writing-plan-be"
+license:             BSD3
+author:              "Alias Qli"
+maintainer:          "2576814881@qq.com"
+copyright:           "2021 Alias Qli"
+
+extra-source-files:
+- README.md
+
+synopsis:            Backend for Writing Plan.
+category:            Web
+
+description:         Please see the README on GitHub at <https://github.com/githubuser/writing-plan-be#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+- opaleye
+- product-profunctors
+- text
+- bytestring
+- time
+- postgresql-simple
+- template-haskell
+- monad-control
+- mtl
+- transformers-base
+- resource-pool
+- safe-exceptions
+- servant
+- http-media
+- hedis
+- cereal
+- directory
+- aeson
+- containers
+- fused-effects
+
+ghc-options:
+- -j
+- -O
+- -threaded
+- -rtsopts
+- -with-rtsopts=-N
+- -Wall
+- -Wcompat
+- -Wincomplete-record-updates
+# - -Wincomplete-uni-patterns
+- -Wredundant-constraints
+- -Wno-unused-do-bind
+
+default-extensions: 
+- ApplicativeDo
+- ConstraintKinds
+- DataKinds
+- DefaultSignatures
+- DeriveFoldable
+- DeriveFunctor
+- DeriveGeneric
+- DeriveLift
+- DeriveTraversable
+- DerivingStrategies
+- EmptyCase
+- ExistentialQuantification
+- FlexibleContexts
+- FlexibleInstances
+- FunctionalDependencies
+- GADTs
+- GeneralizedNewtypeDeriving
+- InstanceSigs
+- KindSignatures
+- LambdaCase
+- MultiParamTypeClasses
+- MultiWayIf
+- NamedFieldPuns
+- OverloadedStrings
+- PatternSynonyms
+- RankNTypes
+- RecordWildCards
+- ScopedTypeVariables
+- StandaloneDeriving
+- TupleSections
+- TypeApplications
+- TypeFamilies
+- TypeFamilyDependencies
+- TypeOperators
+
+library:
+  source-dirs: src
+
+executables:
+  writing-plan-be:
+    main:                Main.hs
+    source-dirs:         app
+    dependencies:
+    - writing-plan-be
