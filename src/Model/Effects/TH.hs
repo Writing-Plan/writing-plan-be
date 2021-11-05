@@ -2,37 +2,44 @@
 
 module Model.Effects.TH (sendAll) where
 
-import           Control.Algebra
+import           Control.Algebra     (Has, send)
 import           Control.Monad
-import           Data.Maybe
-import           GHC.Unicode         (toLower)
+import           Data.Char           (toLower)
 import           Language.Haskell.TH
 
 lowerHead :: String -> String
 lowerHead (x:xs) = toLower x : xs
 lowerHead []     = undefined
 
-nmAndCnt :: Con -> (Name, Int)
-nmAndCnt = \case
-  NormalC nm bts       -> (nm, length bts)
-  RecC nm vbts         -> (nm, length vbts)
-  ForallC _ _ con      -> nmAndCnt con
-  GadtC [nm] bts _     -> (nm, length bts)
-  RecGadtC [nm] vbts _ -> (nm, length vbts)
-  _                    -> undefined
+nmCntTy :: Con -> (Name, Int, Type)
+nmCntTy = \case
+  ForallC _ _ con       -> nmCntTy con
+  GadtC [nm] bts ty     -> (nm, length bts, ty)
+  RecGadtC [nm] vbts ty -> (nm, length vbts, ty)
+  _                     -> undefined
 
--- | Generate all then 'send' version of all constructors of a datatype
--- except those without any argument, since type inference in this case
--- won't work.
+-- | Generate the 'send' version of all constructors of a datatype.
 sendAll :: Name -> Q [Dec]
 sendAll tyName = do
   TyConI (DataD _cxt _name _bnds _mk cons _derivs) <- reify tyName
-  fmap catMaybes . forM cons $ \con -> do
-    let (nm, cnt) = nmAndCnt con
-    if cnt == 0
-      then pure Nothing
-      else do
-        nms <- replicateM cnt (newName "x")
+  fmap concat . forM cons $ \con -> do
+    let (nm, cnt, _ `AppT` ty) = nmCntTy con
+        name = mkName $ lowerHead $ nameBase nm
+
+    nms <- replicateM cnt (newName "x")
         -- conName x1 x2 ... = send (ConName x1 x2 ...)
-        Just <$> funD (mkName $ lowerHead $ nameBase nm)
+    def <- funD name
           [clause (varP <$> nms) (normalB (varE 'send `appE` foldl (\a b -> a `appE` varE b) (conE nm) nms)) []]
+
+    if cnt /= 0
+      then pure [def]
+      else do
+        sig <- newName "sig"
+        m <- newName "m"
+        -- conName :: Has tyName sig m => m x
+        sigDef <- sigD name $
+          forallT
+            [PlainTV sig, PlainTV m]
+            (pure [ConT ''Has `AppT` ConT tyName `AppT` VarT sig `AppT` VarT m])
+            (varT m `appT` pure ty)
+        pure [sigDef, def]

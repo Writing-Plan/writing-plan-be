@@ -7,10 +7,10 @@ cabal-version: 1.12
 name:           writing-plan-be
 version:        0.1.0.0
 synopsis:       Backend for Writing Plan.
-description:    Please see the README on GitHub at <https://github.com/githubuser/writing-plan-be#readme>
+description:    Please see the README on GitHub at <https://github.com/Writing-Plan/writing-plan-be#readme>
 category:       Web
-homepage:       https://github.com/githubuser/writing-plan-be#readme
-bug-reports:    https://github.com/githubuser/writing-plan-be/issues
+homepage:       https://github.com/Writing-Plan/writing-plan-be#readme
+bug-reports:    https://github.com/Writing-Plan/writing-plan-be/issues
 author:         Alias Qli
 maintainer:     2576814881@qq.com
 copyright:      2021 Alias Qli
@@ -22,7 +22,7 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/githubuser/writing-plan-be
+  location: https://github.com/Writing-Plan/writing-plan-be
 
 library
   exposed-modules:

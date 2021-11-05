@@ -20,8 +20,8 @@ data User (m :: Type -> Type) k where
   AddUser       :: Email -> Username -> Password -> User m (Maybe UserID)
   CheckUser     :: Email -> Password -> User m (Maybe (UserID, Username))
 
-initUserTable :: Has User sig m => m Bool
-initUserTable = send InitUserTable
+-- initUserTable :: Has User sig m => m Bool
+-- initUserTable = send InitUserTable
 
 sendAll ''User
 
@@ -49,7 +49,7 @@ instance Has PG sig m => Algebra (User :+: sig) (UserC m) where
         { iTable      = userTable
         , iRows       = [toFields @UserW User{userID = Nothing, ..}]
         , iReturning  = rReturning userID
-        , iOnConflict = Nothing
+        , iOnConflict = Just DoNothing
         }
       CheckUser email' passwd' -> fmap listToMaybe . select $ do
         User{..} <- selectTable userTable
