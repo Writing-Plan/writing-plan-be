@@ -26,13 +26,16 @@ source-repository head
 
 library
   exposed-modules:
+      Model.Article.Effect
+      Model.Article.Type
       Model.Blogger.Effect
       Model.Blogger.Type
       Model.F
       Model.F.Family
       Model.PG
+      Model.Tag.Effect
+      Model.Tag.Type
       Model.TH
-      Model.Type
       Model.User.Effect
       Model.User.Type
   other-modules:

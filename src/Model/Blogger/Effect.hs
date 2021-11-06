@@ -2,7 +2,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 
-module Model.Effects.Blogger
+module Model.Blogger.Effect
   ( Blogger, initBloggerTable, addBlogger, setAllowComments
   , BloggerC, runBlogger
   ) where
@@ -35,7 +35,7 @@ instance Has PG sig m => Algebra (Blogger :+: sig) (BloggerC m) where
     R other       -> BloggerC (alg (runBloggerC . hdl) other ctx)
     L user -> (ctx $>) <$> case user of
       InitBloggerTable -> initTable "blogger_table"
-        "CREATE TABLE user_table ( \
+        "CREATE TABLE blogger_table ( \
         \  blogger_id      int     PRIMARY KEY UNIQUE REFERENCES user_table(user_id), \
         \  blogger_url     text    NOT NULL UNIQUE, \
         \  allow_comments  boolean NOT NULL \

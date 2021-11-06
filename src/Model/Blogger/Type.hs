@@ -12,6 +12,8 @@ import           Opaleye
 
 type Url = Text
 
+type BloggerID = UserID
+
 data BloggerT a b c
   = Blogger              -- ^ @TABLE blogger_table@
     { bloggerID     :: a -- ^ @blogger_id int PRIMARY KEY REFERENCES user_table(user_id)@
@@ -21,7 +23,7 @@ data BloggerT a b c
 
 makeAdaptorAndInstance "pBlogger" ''BloggerT
 
-type Blogger_ = BloggerT UserID Url Bool
+type Blogger_ = BloggerT BloggerID Url Bool
 makeTypeInstanceF ''Blogger_
 
 bloggerTable :: Table (F Blogger_) (F Blogger_)
