@@ -24,7 +24,7 @@ makeAdaptorAndInstance "pUserID" ''UserIDT
 
 data UserT a b c d
   = User          -- ^ @TABLE user_table@
-    { userID :: a -- ^ @user_id serial PRIMARY KEY@
+    { userID :: a -- ^ @user_id bigserial PRIMARY KEY@
     , email  :: b -- ^ @email text NOT NULL UNIQUE@
     , name   :: c -- ^ @username text NOT NULL@
     , passwd :: d -- ^ @passwd bytea NOT NULL@

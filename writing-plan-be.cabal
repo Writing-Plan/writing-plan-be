@@ -28,10 +28,13 @@ library
   exposed-modules:
       Model.Article.Effect
       Model.Article.Type
+      Model.ArticleHasTag.Effect
+      Model.ArticleHasTag.Type
       Model.Blogger.Effect
       Model.Blogger.Type
       Model.F
       Model.F.Family
+      Model.Helper
       Model.PG
       Model.Tag.Effect
       Model.Tag.Type

@@ -16,7 +16,7 @@ type BloggerID = UserID
 
 data BloggerT a b c
   = Blogger              -- ^ @TABLE blogger_table@
-    { bloggerID     :: a -- ^ @blogger_id int PRIMARY KEY REFERENCES user_table(user_id)@
+    { bloggerID     :: a -- ^ @blogger_id bigint PRIMARY KEY REFERENCES user_table(user_id)@
     , blogUrl       :: b -- ^ @blogger_url text NOT NULL UNIQUE@
     , allowComments :: c -- ^ @allow_comments boolean NOT NULL@
     }

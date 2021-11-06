@@ -37,10 +37,10 @@ instance Has PG sig m => Algebra (User :+: sig) (UserC m) where
     L user -> (ctx $>) <$> case user of
       InitUserTable -> initTable "user_table"
         "CREATE TABLE user_table ( \
-        \  user_id   serial  PRIMARY KEY, \
-        \  email     text    NOT NULL UNIQUE, \
-        \  username  text    NOT NULL, \
-        \  passwd    bytea   NOT NULL \
+        \  user_id   bigserial PRIMARY KEY, \
+        \  email     text      NOT NULL UNIQUE, \
+        \  username  text      NOT NULL, \
+        \  passwd    bytea     NOT NULL \
         \);"
       IsEmailAvail email' -> fmap Prelude.null . select $ do
         User{..} <- selectTable userTable

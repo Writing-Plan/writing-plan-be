@@ -8,6 +8,7 @@ import           Control.Algebra
 import           Control.Monad.IO.Class (MonadIO)
 import           Data.Functor           (($>))
 import           Data.Kind              (Type)
+import           Model.Helper
 import           Model.PG
 import           Model.TH               (sendAll)
 import           Model.Tag.Type
@@ -16,7 +17,7 @@ import           Opaleye
 
 data Tag (m :: Type -> Type) k where
   InitTagTable :: Tag m Bool
-  AddTag       :: TagText -> Tag m Bool
+  AddTag       :: TagText -> Tag m (Maybe ())
 
 sendAll ''Tag
 
@@ -32,12 +33,12 @@ instance Has PG sig m => Algebra (Tag :+: sig) (TagC m) where
     L user -> (ctx $>) <$> case user of
       InitTagTable -> initTable "tag_table"
         "CREATE TABLE tag_table ( \
-        \  tag_id serial PRIMARY KEY REFERENCES, \
-        \  tag    text   NOT NULL \
+        \  tag_id bigserial PRIMARY KEY REFERENCES, \
+        \  tag    text      NOT NULL \
         \);"
-      AddTag tag -> fmap (==1) . insert $ Insert
+      AddTag tag -> toMaybeUnit . (==1) <$>  insert Insert
         { iTable      = tagTable
-        , iRows       = [toFields @TagW $ Tag {tagID = Nothing, ..}]
+        , iRows       = [toFields @TagW Tag{tagID = Nothing, ..}]
         , iReturning  = rCount
         , iOnConflict = Just DoNothing
         }

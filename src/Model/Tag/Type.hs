@@ -16,7 +16,7 @@ makeAdaptorAndInstance "pTagID" ''TagIDT
 
 data TagT a b
   = Tag          -- ^ @TABLE tag_table@
-    { tagID :: a -- ^ @tag_id serial PRIMARY KEY@
+    { tagID :: a -- ^ @tag_id bigserial PRIMARY KEY@
     , tag   :: b -- ^ @tag text NOT NULL UNIQUE@
     }
 

@@ -13,11 +13,12 @@ import           Model.Blogger.Type
 import           Model.PG
 import           Model.TH               (sendAll)
 import           Opaleye
+import Model.Helper
 
 
 data Article (m :: Type -> Type) k where
   InitArticleTable :: Article m Bool
-  AddArticle       :: BloggerID -> Title -> Content -> Article m Bool
+  AddArticle       :: BloggerID -> Title -> Content -> Article m (Maybe ())
 
 sendAll ''Article
 
@@ -33,14 +34,14 @@ instance Has PG sig m => Algebra (Article :+: sig) (ArticleC m) where
     L user -> (ctx $>) <$> case user of
       InitArticleTable -> initTable "article_table"
         "CREATE TABLE article_table ( \
-        \  article_id serial PRIMARY KEY, \
-        \  author_id  int    REFERENCES blogger_table(blogger_id), \
+        \  article_id bigserial PRIMARY KEY, \
+        \  author_id  bigint    REFERENCES blogger_table(blogger_id), \
         \  title      text   NOT NULL, \
         \  content    text   NOT NULL \
         \);"
-      AddArticle authorID title content -> fmap (==1) . insert $ Insert
+      AddArticle authorID title content -> toMaybeUnit . (==1) <$> insert Insert
         { iTable      = articleTable
-        , iRows       = [toFields @ArticleW $ Article {articleID = Nothing, ..}]
+        , iRows       = [toFields @ArticleW Article{articleID = Nothing, ..}]
         , iReturning  = rCount
         , iOnConflict = Just DoNothing
         }
