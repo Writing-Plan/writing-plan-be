@@ -3,17 +3,57 @@
 
 module Model.TH where
 
+import           Control.Algebra                 (Has, send)
 import           Control.Applicative             (Applicative (liftA2))
+import           Control.Monad                   (forM, replicateM)
+import           Data.Char                       (toLower)
 import           Data.Profunctor.Product.Default (Default (..))
 import           Data.Serialize                  (Serialize)
 import           Data.String                     (IsString)
 import           Language.Haskell.TH
-import           Model.FamilyF                   (F)
+import           Model.F.Family                  (F)
 
 -- HLS will crash when importing 'Opaleye'
 #ifdef BUILD
 import           Opaleye                         (Field, ToFields)
 #endif
+
+lowerHead :: String -> String
+lowerHead (x:xs) = toLower x : xs
+lowerHead []     = undefined
+
+nmCntTy :: Con -> (Name, Int, Type)
+nmCntTy = \case
+  ForallC _ _ con       -> nmCntTy con
+  GadtC [nm] bts ty     -> (nm, length bts, ty)
+  RecGadtC [nm] vbts ty -> (nm, length vbts, ty)
+  _                     -> undefined
+
+-- | Generate the 'send' version of all constructors of a datatype.
+sendAll :: Name -> Q [Dec]
+sendAll tyName = do
+  TyConI (DataD _cxt _name _bnds _mk cons _derivs) <- reify tyName
+  fmap concat . forM cons $ \con -> do
+    let (nm, cnt, _ `AppT` ty) = nmCntTy con
+        name = mkName $ lowerHead $ nameBase nm
+
+    nms <- replicateM cnt (newName "x")
+        -- conName x1 x2 ... = send (ConName x1 x2 ...)
+    def_ <- funD name
+          [clause (varP <$> nms) (normalB (varE 'send `appE` foldl (\a b -> a `appE` varE b) (conE nm) nms)) []]
+
+    if cnt /= 0
+      then pure [def_]
+      else do
+        sig <- newName "sig"
+        m <- newName "m"
+        -- conName :: Has tyName sig m => m x
+        sigDef <- sigD name $
+          forallT
+            [PlainTV sig, PlainTV m]
+            (pure [ConT ''Has `AppT` ConT tyName `AppT` VarT sig `AppT` VarT m])
+            (varT m `appT` pure ty)
+        pure [sigDef, def_]
 
 genNewtypeT :: String -> Name -> Name -> Q [Dec]
 genNewtypeT nm hsTy pgTy = do

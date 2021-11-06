@@ -11,9 +11,10 @@ import           Control.Algebra
 import           Control.Monad.IO.Class (MonadIO)
 import           Data.Functor           (($>))
 import           Data.Kind              (Type)
-import           Model.Effects.PG
-import           Model.Effects.TH       (sendAll)
-import           Model.Type
+import           Model.Blogger.Type
+import           Model.PG
+import           Model.TH               (sendAll)
+import           Model.User.Type
 import           Opaleye
 
 data Blogger (m :: Type -> Type) k where

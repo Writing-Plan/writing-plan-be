@@ -2,14 +2,14 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 
-module Model.Effects.PG
+module Model.PG
   ( WithPool, withPool, WithPoolC, runWithPool
   , PG, initTable, select, insert, update, delete, PGC, runPG
   ) where
 
 import           Control.Algebra
 import           Control.Carrier.Reader
-import           Control.Monad
+import           Control.Monad                   (unless, void)
 import           Control.Monad.IO.Class          (MonadIO (..))
 import           Data.Functor                    (($>))
 import           Data.Kind                       (Type)
@@ -17,7 +17,7 @@ import           Data.Pool                       (Pool, withResource)
 import           Data.Profunctor.Product.Default (Default)
 import           Data.String                     (fromString)
 import           Database.PostgreSQL.Simple      (Connection, execute_, query_)
-import           Model.Effects.TH                (sendAll)
+import           Model.TH                        (sendAll)
 import           Opaleye                         hiding (Delete, Insert, Update)
 import qualified Opaleye                         as O
 

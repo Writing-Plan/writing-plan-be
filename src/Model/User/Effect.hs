@@ -2,7 +2,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 
-module Model.Effects.User
+module Model.User.Effect
   ( User, initUserTable, isEmailAvail, addUser, checkUser
   , UserC, runUser
   ) where
@@ -12,9 +12,9 @@ import           Control.Monad.IO.Class (MonadIO)
 import           Data.Functor           (($>))
 import           Data.Kind              (Type)
 import           Data.Maybe             (listToMaybe)
-import           Model.Effects.PG
-import           Model.Effects.TH       (sendAll)
-import           Model.Type
+import           Model.PG
+import           Model.TH       (sendAll)
+import           Model.User.Type
 import           Opaleye
 
 data User (m :: Type -> Type) k where

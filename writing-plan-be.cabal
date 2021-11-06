@@ -26,13 +26,15 @@ source-repository head
 
 library
   exposed-modules:
-      Model.Effects.Blogger
-      Model.Effects.PG
-      Model.Effects.TH
-      Model.Effects.User
-      Model.FamilyF
+      Model.Blogger.Effect
+      Model.Blogger.Type
+      Model.F
+      Model.F.Family
+      Model.PG
       Model.TH
       Model.Type
+      Model.User.Effect
+      Model.User.Type
   other-modules:
       Paths_writing_plan_be
   hs-source-dirs:

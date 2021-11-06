@@ -1,4 +1,4 @@
-module Model.FamilyF where
+module Model.F.Family where
 
 -- | Map a Haskell type to its corresponding Sql type.
 type family F a = b | b -> a
