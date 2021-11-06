@@ -27,16 +27,16 @@ newtype TagC m a = TagC { runTagC :: m a }
 runTag :: TagC m a -> m a
 runTag = runTagC
 
-instance Has PG sig m => Algebra (Tag :+: sig) (TagC m) where
+instance Has ConnectionPool sig m => Algebra (Tag :+: sig) (TagC m) where
   alg hdl sig ctx = case sig of
     R other       -> TagC (alg (runTagC . hdl) other ctx)
     L user -> (ctx $>) <$> case user of
       InitTagTable -> initTable "tag_table"
         "CREATE TABLE tag_table ( \
-        \  tag_id bigserial PRIMARY KEY REFERENCES, \
+        \  tag_id bigserial PRIMARY KEY, \
         \  tag    text      NOT NULL \
         \);"
-      AddTag tag -> toMaybeUnit . (==1) <$>  insert Insert
+      AddTag tag -> toMaybeUnit . (==1) <$> insert Insert
         { iTable      = tagTable
         , iRows       = [toFields @TagW Tag{tagID = Nothing, ..}]
         , iReturning  = rCount

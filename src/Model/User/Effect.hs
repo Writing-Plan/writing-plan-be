@@ -31,7 +31,7 @@ newtype UserC m a = UserC { runUserC :: m a }
 runUser :: UserC m a -> m a
 runUser = runUserC
 
-instance Has PG sig m => Algebra (User :+: sig) (UserC m) where
+instance Has ConnectionPool sig m => Algebra (User :+: sig) (UserC m) where
   alg hdl sig ctx = case sig of
     R other       -> UserC (alg (runUserC . hdl) other ctx)
     L user -> (ctx $>) <$> case user of

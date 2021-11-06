@@ -12,11 +12,11 @@ import           Control.Monad.IO.Class (MonadIO)
 import           Data.Functor           (($>))
 import           Data.Kind              (Type)
 import           Model.Blogger.Type
+import           Model.Helper
 import           Model.PG
 import           Model.TH               (sendAll)
 import           Model.User.Type
 import           Opaleye
-import Model.Helper
 
 data Blogger (m :: Type -> Type) k where
   InitBloggerTable :: Blogger m Bool
@@ -31,13 +31,13 @@ newtype BloggerC m a = BloggerC { runBloggerC :: m a }
 runBlogger :: BloggerC m a -> m a
 runBlogger = runBloggerC
 
-instance Has PG sig m => Algebra (Blogger :+: sig) (BloggerC m) where
+instance Has ConnectionPool sig m => Algebra (Blogger :+: sig) (BloggerC m) where
   alg hdl sig ctx = case sig of
     R other       -> BloggerC (alg (runBloggerC . hdl) other ctx)
     L user -> (ctx $>) <$> case user of
       InitBloggerTable -> initTable "blogger_table"
         "CREATE TABLE blogger_table ( \
-        \  blogger_id      bigint  PRIMARY KEY UNIQUE REFERENCES user_table(user_id), \
+        \  blogger_id      bigint  PRIMARY KEY REFERENCES user_table(user_id), \
         \  blogger_url     text    NOT NULL UNIQUE, \
         \  allow_comments  boolean NOT NULL \
         \);"

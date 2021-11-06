@@ -23,7 +23,7 @@ data ArticleHasTagT a b c d e
     { articleHasTagID :: a -- ^ @article_has_tag_id bigserial PRIMARY KEY@
     , hasArticleID    :: b -- ^ @has_article_id bigint REFERENCES article_table(article_id)@
     , hasTagID        :: c -- ^ @has_tag_id bigint REFERENCES tag_table(tag_id)@
-    , adderID         :: d -- ^ @adder_id bigint REFERENCES user_table(user_id)@
+    , hasUserID       :: d -- ^ @has_user_id bigint REFERENCES user_table(user_id)@
     , reportCount     :: e -- ^ @report_count int NOT NULL@
     }
 
@@ -38,6 +38,6 @@ articleHasTagTable = table "article_table" $ pArticleHasTag ArticleHasTag
   { articleHasTagID = pArticleHasTagID $ ArticleHasTagID (tableField "article_has_tag_id")
   , hasArticleID    = pArticleID       $ ArticleID       (tableField "article_id")
   , hasTagID        = pTagID           $ TagID           (tableField "tag_id")
-  , adderID         = pUserID          $ UserID          (tableField "adder_id")
+  , hasUserID       = pUserID          $ UserID          (tableField "adder_id")
   , reportCount     = tableField "content"
   }

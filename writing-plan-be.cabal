@@ -41,6 +41,8 @@ library
       Model.TH
       Model.User.Effect
       Model.User.Type
+      Model.UserTag.Effect
+      Model.UserTag.Type
   other-modules:
       Paths_writing_plan_be
   hs-source-dirs:

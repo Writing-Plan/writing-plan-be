@@ -31,7 +31,7 @@ newtype ArticleHasTagC m a = ArticleHasTagC { runArticleHasTagC :: m a }
 runArticleHasTag :: ArticleHasTagC m a -> m a
 runArticleHasTag = runArticleHasTagC
 
-instance Has PG sig m => Algebra (ArticleHasTag :+: sig) (ArticleHasTagC m) where
+instance Has ConnectionPool sig m => Algebra (ArticleHasTag :+: sig) (ArticleHasTagC m) where
   alg hdl sig ctx = case sig of
     R other       -> ArticleHasTagC (alg (runArticleHasTagC . hdl) other ctx)
     L user -> (ctx $>) <$> case user of
@@ -40,27 +40,26 @@ instance Has PG sig m => Algebra (ArticleHasTag :+: sig) (ArticleHasTagC m) wher
         \  article_has_tag_id bigserial PRIMARY KEY, \
         \  has_article_id     bigint    REFERENCES article_table(article_id), \
         \  has_tag_id         bigint    REFERENCES tag_table(tag_id), \
-        \  adder_id           bigint    REFERENCES user_table(user_id), \
+        \  has_user_id        bigint    REFERENCES user_table(user_id), \
         \  report_count       int       NOT NULL \
         \);"
-      AddTagForArticle adderID hasArticleID hasTagID -> toMaybeUnit . (==1) <$> insert Insert
+      AddTagForArticle hasUserID hasArticleID hasTagID -> toMaybeUnit . (==1) <$> insert Insert
         { iTable      = articleHasTagTable
         , iRows       = [toFields @ArticleHasTagW ArticleHasTag{articleHasTagID = Nothing, reportCount = 0, ..}]
         , iReturning  = rCount
         , iOnConflict = Just DoNothing
         }
-      DelTagForArticle adderID' hasArticleID' hasTagID' -> toMaybeUnit . (==1) <$> delete Delete
+      DelTagForArticle hasUserID' hasArticleID' hasTagID' -> toMaybeUnit . (==1) <$> delete Delete
         { dTable     = articleHasTagTable
         , dWhere     = \ArticleHasTag{..} ->
-              (adderID, hasArticleID, hasTagID) .=== toFields (adderID', hasArticleID', hasTagID')
+              (hasUserID, hasArticleID, hasTagID) .=== toFields (hasUserID', hasArticleID', hasTagID')
         , dReturning = rCount
         }
-      ReportTagForArticle userID hasArticleID' hasTagID' -> do
-          -- How to use one connection in the two operations?
-          counts <- update $ Update
+      ReportTagForArticle userID hasArticleID' hasTagID' -> withPG $ do
+          counts <- update' $ Update
             { uTable = articleHasTagTable
             , uWhere = \ArticleHasTag{..} ->
-                  (hasArticleID, hasTagID) .=== toFields (hasArticleID', hasTagID') .&& adderID ./== toFields userID
+                  (hasArticleID, hasTagID) .=== toFields (hasArticleID', hasTagID') .&& hasUserID ./== toFields userID
             , uUpdateWith = updateEasy $ \ArticleHasTag{..} -> ArticleHasTag {reportCount = reportCount + 1, ..}
             , uReturning = rReturning reportCount
             }
@@ -68,7 +67,7 @@ instance Has PG sig m => Algebra (ArticleHasTag :+: sig) (ArticleHasTagC m) wher
             [cnt] -> if cnt < id @Int 10
               then pure (Just False)
               else do
-                delete $ Delete
+                delete' $ Delete
                   { dTable     = articleHasTagTable
                   , dWhere     = \ArticleHasTag{..} ->
                         (hasArticleID, hasTagID) .=== toFields (hasArticleID', hasTagID')

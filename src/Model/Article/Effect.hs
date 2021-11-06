@@ -10,10 +10,10 @@ import           Data.Functor           (($>))
 import           Data.Kind              (Type)
 import           Model.Article.Type
 import           Model.Blogger.Type
+import           Model.Helper
 import           Model.PG
 import           Model.TH               (sendAll)
 import           Opaleye
-import Model.Helper
 
 
 data Article (m :: Type -> Type) k where
@@ -28,7 +28,7 @@ newtype ArticleC m a = ArticleC { runArticleC :: m a }
 runArticle :: ArticleC m a -> m a
 runArticle = runArticleC
 
-instance Has PG sig m => Algebra (Article :+: sig) (ArticleC m) where
+instance Has ConnectionPool sig m => Algebra (Article :+: sig) (ArticleC m) where
   alg hdl sig ctx = case sig of
     R other       -> ArticleC (alg (runArticleC . hdl) other ctx)
     L user -> (ctx $>) <$> case user of
