@@ -5,35 +5,36 @@ module Model.UserTag.Type where
 import           Data.Int                   (Int64)
 import           Data.Profunctor.Product.TH (makeAdaptorAndInstance)
 import           Data.Text                  (Text)
-import           Model.Article.Type
 import           Model.F                    (F)
+import           Model.Post.Type
 import           Model.TH                   (genNewtypeT, makeTypeInstanceFWR)
 import           Model.User.Type
 import           Opaleye
 
-type UserTagText = Text
+genNewtypeT "UserTagText" ''Text ''SqlText
+makeAdaptorAndInstance "pUserTagText" ''UserTagTextT
 
 genNewtypeT "UserTagID" ''Int64 ''SqlInt8
 makeAdaptorAndInstance "pUserTagID" ''UserTagIDT
 
 data UserTagT a b c d
   = UserTag             -- ^ @TABLE user_tag_table@
-    { userTagID    :: a -- ^ @user_tag_id bigserial PRIMARY KEY@
-    , tagArticleID :: b -- ^ @tag_article_id bigint REFERENCES article_table(article_id)@
-    , userTag      :: c -- ^ @user_tag text NOT NULL@
-    , addUserID    :: d -- ^ @add_user_id REFERENCES user_table(user_id)@
+    { userTagID      :: a -- ^ @user_tag_id bigserial PRIMARY KEY@
+    , userTagPostID  :: b -- ^ @user_tag_post_id bigint REFERENCES post_table(post_id), UNIQUE(user_tag_post_id, user_tag_text)@
+    , userTagText    :: c -- ^ @user_tag_text text NOT NULL@
+    , userTagAdderID :: d -- ^ @user_tag_adder_id REFERENCES user_table(user_id), UNIQUE(user_tag_post_id, user_tag_text)@
     }
 
 makeAdaptorAndInstance "pUserTag" ''UserTagT
 
-type UserTagW = UserTagT (Maybe UserTagID) ArticleID UserTagText UserID
-type UserTagR = UserTagT UserTagID         ArticleID UserTagText UserID
+type UserTagW = UserTagT (Maybe UserTagID) PostID UserTagText UserID
+type UserTagR = UserTagT UserTagID         PostID UserTagText UserID
 makeTypeInstanceFWR "UserTag"
 
 userTagTable :: Table (F UserTagW) (F UserTagR)
 userTagTable = table "tag_table" $ pUserTag UserTag
-  { userTagID    = pUserTagID $ UserTagID (tableField "user_tag_id")
-  , tagArticleID = pArticleID $ ArticleID (tableField "tag_article_id")
-  , userTag      = tableField "user_tag"
-  , addUserID    = pUserID    $ UserID    (tableField "tag_id")
+  { userTagID      = pUserTagID   $ UserTagID   (tableField "user_tag_id")
+  , userTagPostID  = pPostID      $ PostID      (tableField "user_tag_post_id")
+  , userTagText    = pUserTagText $ UserTagText (tableField "user_tag_text")
+  , userTagAdderID = pUserID      $ UserID      (tableField "user_tag_adder_id")
   }

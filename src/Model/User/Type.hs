@@ -23,11 +23,11 @@ genNewtypeT "UserID" ''Int64 ''SqlInt8
 makeAdaptorAndInstance "pUserID" ''UserIDT
 
 data UserT a b c d
-  = User          -- ^ @TABLE user_table@
-    { userID :: a -- ^ @user_id bigserial PRIMARY KEY@
-    , email  :: b -- ^ @email text NOT NULL UNIQUE@
-    , name   :: c -- ^ @username text NOT NULL@
-    , passwd :: d -- ^ @passwd bytea NOT NULL@
+  = User              -- ^ @TABLE user_table@
+    { userID       :: a -- ^ @user_id bigserial PRIMARY KEY@
+    , userEmail    :: b -- ^ @user_email text NOT NULL UNIQUE@
+    , userUsername :: c -- ^ @user_username text NOT NULL@
+    , userPasswd   :: d -- ^ @user_passwd bytea NOT NULL@
     }
   deriving (Show, Eq)
 
@@ -39,8 +39,8 @@ makeTypeInstanceFWR "User"
 
 userTable :: Table (F UserW) (F UserR)
 userTable = table "user_table" $ pUser User
-  { userID = pUserID   $ UserID   (tableField "user_id")
-  , name   = tableField "username"
-  , email  = pEmail    $ Email    (tableField "email")
-  , passwd = pPassword $ Password (tableField "passwd")
+  { userID       = pUserID   $ UserID   (tableField "user_id")
+  , userEmail    = pEmail    $ Email    (tableField "user_email")
+  , userUsername = tableField "user_username"
+  , userPasswd   = pPassword $ Password (tableField "user_passwd")
   }

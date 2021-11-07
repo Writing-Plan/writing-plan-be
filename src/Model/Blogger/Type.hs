@@ -15,10 +15,10 @@ type Url = Text
 type BloggerID = UserID
 
 data BloggerT a b c
-  = Blogger              -- ^ @TABLE blogger_table@
-    { bloggerID     :: a -- ^ @blogger_id bigint PRIMARY KEY REFERENCES user_table(user_id)@
-    , blogUrl       :: b -- ^ @blogger_url text NOT NULL UNIQUE@
-    , allowComments :: c -- ^ @allow_comments boolean NOT NULL@
+  = Blogger                     -- ^ @TABLE blogger_table@
+    { bloggerID            :: a -- ^ @blogger_id bigint PRIMARY KEY REFERENCES user_table(user_id)@
+    , bloggerUrl           :: b -- ^ @blogger_url text NOT NULL UNIQUE@
+    , bloggerAllowComments :: c -- ^ @blogger_allow_comments boolean NOT NULL@
     }
 
 makeAdaptorAndInstance "pBlogger" ''BloggerT
@@ -28,7 +28,7 @@ makeTypeInstanceF ''Blogger_
 
 bloggerTable :: Table (F Blogger_) (F Blogger_)
 bloggerTable = table "blogger_table" $ pBlogger Blogger
-  { bloggerID     = pUserID    $ UserID    (tableField "blogger_user_id")
-  , blogUrl       = tableField "blog_url"
-  , allowComments = tableField "allow_comments"
+  { bloggerID            = pUserID $ UserID (tableField "blogger_user_id")
+  , bloggerUrl           = tableField "blogger_url"
+  , bloggerAllowComments = tableField "blogger_allow_comments"
   }

@@ -37,19 +37,19 @@ instance Has ConnectionPool sig m => Algebra (Blogger :+: sig) (BloggerC m) wher
     L user -> (ctx $>) <$> case user of
       InitBloggerTable -> initTable "blogger_table"
         "CREATE TABLE blogger_table ( \
-        \  blogger_id      bigint  PRIMARY KEY REFERENCES user_table(user_id), \
-        \  blogger_url     text    NOT NULL UNIQUE, \
-        \  allow_comments  boolean NOT NULL \
+        \  blogger_id             bigint  PRIMARY KEY REFERENCES user_table(user_id), \
+        \  blogger_url            text    NOT NULL UNIQUE, \
+        \  blogger_allow_comments boolean NOT NULL \
         \);"
-      AddBlogger bloggerID blogUrl -> toMaybeUnit .  (==1) <$> insert Insert
+      AddBlogger bloggerID bloggerUrl -> toMaybeUnit .  (==1) <$> insert Insert
         { iTable      = bloggerTable
-        , iRows       = [toFields @Blogger_ Blogger{allowComments = True, ..}]
+        , iRows       = [toFields @Blogger_ Blogger{bloggerAllowComments = True, ..}]
         , iReturning  = rCount
         , iOnConflict = Just DoNothing
         }
       SetAllowComments bloggerID' allowance -> toMaybeUnit . (==1) <$> update Update
         { uTable      = bloggerTable
-        , uUpdateWith = \Blogger{..} -> Blogger{allowComments = toFields allowance, ..}
+        , uUpdateWith = \Blogger{..} -> Blogger{bloggerAllowComments = toFields allowance, ..}
         , uWhere      = \Blogger{..} -> bloggerID .=== toFields bloggerID'
         , uReturning  = rCount
         }

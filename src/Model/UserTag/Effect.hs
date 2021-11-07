@@ -9,9 +9,9 @@ import           Control.Monad.IO.Class     (MonadIO)
 import           Data.Functor               (($>))
 import           Data.Kind                  (Type)
 import           Database.PostgreSQL.Simple (Connection)
-import           Model.Article.Type         (ArticleID)
 import           Model.Helper
 import           Model.PG
+import           Model.Post.Type
 import           Model.TH                   (sendAll)
 import           Model.User.Type
 import           Model.UserTag.Type
@@ -20,7 +20,7 @@ import           Opaleye
 
 data UserTag (m :: Type -> Type) k where
   InitUserTagTable :: UserTag m Bool
-  AddUserTag       :: UserID -> ArticleID -> UserTagText -> UserTag m (Maybe ())
+  AddUserTag       :: UserID -> PostID -> UserTagText -> UserTag m (Maybe ())
 
 sendAll ''UserTag
 
@@ -36,13 +36,13 @@ instance Has (WithPool Connection) sig m => Algebra (UserTag :+: sig) (UserTagC 
     L user -> (ctx $>) <$> case user of
       InitUserTagTable -> initTable "user_tag_table"
         "CREATE TABLE user_tag_table ( \
-        \  user_tag_id    bigserial PRIMARY KEY, \
-        \  tag_article_id bigint    REFERENCES article_table(article_id), \
-        \  user_tag       text      NOT NULL, \
-        \  add_user_id    bigint    REFERENCES user_table(user_id), \
-        \  UNIQUE(tag_article_id, user_tag) \
+        \  user_tag_id       bigserial PRIMARY KEY, \
+        \  user_tag_post_id  bigint    REFERENCES post_table(post_id), \
+        \  user_tag_text     text      NOT NULL, \
+        \  user_tag_adder_id bigint    REFERENCES user_table(user_id), \
+        \  UNIQUE(user_tag_post_id, user_tag_text) \
         \);"
-      AddUserTag addUserID tagArticleID userTag -> toMaybeUnit . (==1) <$> insert Insert
+      AddUserTag userTagAdderID userTagPostID userTagText -> toMaybeUnit . (==1) <$> insert Insert
         { iTable      = userTagTable
         , iRows       = [toFields @UserTagW UserTag{userTagID = Nothing, ..}]
         , iReturning  = rCount

@@ -13,7 +13,7 @@ import           Data.Functor           (($>))
 import           Data.Kind              (Type)
 import           Data.Maybe             (listToMaybe)
 import           Model.PG
-import           Model.TH       (sendAll)
+import           Model.TH               (sendAll)
 import           Model.User.Type
 import           Opaleye
 
@@ -37,21 +37,21 @@ instance Has ConnectionPool sig m => Algebra (User :+: sig) (UserC m) where
     L user -> (ctx $>) <$> case user of
       InitUserTable -> initTable "user_table"
         "CREATE TABLE user_table ( \
-        \  user_id   bigserial PRIMARY KEY, \
-        \  email     text      NOT NULL UNIQUE, \
-        \  username  text      NOT NULL, \
-        \  passwd    bytea     NOT NULL \
+        \  user_id       bigserial PRIMARY KEY, \
+        \  user_email    text      NOT NULL UNIQUE, \
+        \  user_username text      NOT NULL, \
+        \  user_passwd   bytea     NOT NULL \
         \);"
-      IsEmailAvail email' -> fmap Prelude.null . select $ do
+      IsEmailAvail userEmail' -> fmap Prelude.null . select $ do
         User{..} <- selectTable userTable
-        where_ $ email .=== toFields email'
-      AddUser email name passwd -> fmap listToMaybe . insert $ Insert
+        where_ $ userEmail .=== toFields userEmail'
+      AddUser userEmail userUsername userPasswd -> fmap listToMaybe . insert $ Insert
         { iTable      = userTable
         , iRows       = [toFields @UserW $ User {userID = Nothing, ..}]
         , iReturning  = rReturning userID
         , iOnConflict = Just DoNothing
         }
-      CheckUser email' passwd' -> fmap listToMaybe . select $ do
+      CheckUser userEmail' userPasswd' -> fmap listToMaybe . select $ do
         User{..} <- selectTable userTable
-        where_ $ email .=== toFields email' .&& passwd .=== toFields passwd'
-        pure (userID, name)
+        where_ $ userEmail .=== toFields userEmail' .&& userPasswd .=== toFields userPasswd'
+        pure (userID, userUsername)

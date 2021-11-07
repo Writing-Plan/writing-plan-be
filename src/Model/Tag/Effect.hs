@@ -33,12 +33,11 @@ instance Has ConnectionPool sig m => Algebra (Tag :+: sig) (TagC m) where
     L user -> (ctx $>) <$> case user of
       InitTagTable -> initTable "tag_table"
         "CREATE TABLE tag_table ( \
-        \  tag_id bigserial PRIMARY KEY, \
-        \  tag    text      NOT NULL \
+        \  tagText text PRIMARY KEY \
         \);"
-      AddTag tag -> toMaybeUnit . (==1) <$> insert Insert
+      AddTag tagText -> toMaybeUnit . (==1) <$> insert Insert
         { iTable      = tagTable
-        , iRows       = [toFields @TagW Tag{tagID = Nothing, ..}]
+        , iRows       = [toFields @Tag_ Tag{..}]
         , iReturning  = rCount
         , iOnConflict = Just DoNothing
         }

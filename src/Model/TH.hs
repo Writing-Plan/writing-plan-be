@@ -74,7 +74,7 @@ genNewtypeT nm hsTy pgTy = do
 
       -- newtype 'nameT' a = 'name' { 'unName' :: a } deriving (Functor, Eq, Show, Serialize)
       newtyD = NewtypeD [] nameT [PlainTV a] Nothing (RecC name [(unName, noBang, VarT a)])
-        [DerivClause Nothing (ConT <$> [''Functor, ''Eq, ''Show, ''Serialize])]
+        [DerivClause Nothing (ConT <$> [''Functor, ''Eq, ''Show, ''Serialize, ''Foldable, ''Traversable])]
       -- type 'name' = 'nameT' 'hsTy'
       hsSyn = TySynD name [] $ ConT nameT `AppT` ConT hsTy
 
