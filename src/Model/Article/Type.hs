@@ -10,7 +10,7 @@ import           Model.User.Type
 import           Opaleye
 import Data.Int (Int64)
 
-type Title = Text
+type Title   = Text
 type Content = Text
 
 genNewtypeT "ArticleID" ''Int64 ''SqlInt8

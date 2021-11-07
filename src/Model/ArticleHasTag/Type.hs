@@ -4,16 +4,12 @@ module Model.ArticleHasTag.Type where
 
 import           Data.Int                   (Int64)
 import           Data.Profunctor.Product.TH (makeAdaptorAndInstance)
-import           Data.Text                  (Text)
 import           Model.Article.Type
 import           Model.F                    (F)
 import           Model.TH                   (genNewtypeT, makeTypeInstanceFWR)
 import           Model.Tag.Type
 import           Model.User.Type
 import           Opaleye
-
-type Title = Text
-type Content = Text
 
 genNewtypeT "ArticleHasTagID" ''Int64 ''SqlInt8
 makeAdaptorAndInstance "pArticleHasTagID" ''ArticleHasTagIDT
