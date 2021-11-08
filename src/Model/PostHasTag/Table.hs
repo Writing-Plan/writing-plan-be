@@ -1,14 +1,14 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Model.PostHasTag.Type where
+module Model.PostHasTag.Table where
 
 import           Data.Int                   (Int64)
 import           Data.Profunctor.Product.TH (makeAdaptorAndInstance)
 import           Model.F                    (F)
-import           Model.Post.Type
+import           Model.Post.Table
 import           Model.TH                   (genNewtypeT, makeTypeInstanceFWR)
-import           Model.Tag.Type
-import           Model.User.Type
+import           Model.Tag.Table
+import           Model.User.Table
 import           Opaleye
 
 genNewtypeT "PostHasTagID" ''Int64 ''SqlInt8

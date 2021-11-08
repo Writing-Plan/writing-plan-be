@@ -14,7 +14,7 @@ import           Data.Kind              (Type)
 import           Data.Maybe             (listToMaybe)
 import           Model.PG
 import           Model.TH               (sendAll)
-import           Model.User.Type
+import           Model.User.Table
 import           Opaleye
 
 data User (m :: Type -> Type) k where

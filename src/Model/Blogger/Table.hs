@@ -1,13 +1,13 @@
 {-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Model.Blogger.Type where
+module Model.Blogger.Table where
 
 import           Data.Profunctor.Product.TH (makeAdaptorAndInstance)
 import           Data.Text                  (Text)
 import           Model.F                    (F)
 import           Model.TH                   (makeTypeInstanceF)
-import           Model.User.Type
+import           Model.User.Table
 import           Opaleye
 
 type Url = Text

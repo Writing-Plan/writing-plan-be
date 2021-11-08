@@ -10,11 +10,11 @@ import           Data.Functor           (($>))
 import           Data.Kind              (Type)
 import           Model.Helper
 import           Model.PG
-import           Model.Post.Type
-import           Model.PostHasTag.Type
+import           Model.Post.Table
+import           Model.PostHasTag.Table
 import           Model.TH               (sendAll)
-import           Model.Tag.Type
-import           Model.User.Type
+import           Model.Tag.Table
+import           Model.User.Table
 import           Opaleye
 
 data PostHasTag (m :: Type -> Type) k where
@@ -57,25 +57,25 @@ instance Has ConnectionPool sig m => Algebra (PostHasTag :+: sig) (PostHasTagC m
         , dReturning = rCount
         }
       ReportTagForPost userID postHasTagPostID' postHasTagTagText' -> withPG $ do
-          counts <- update' $ Update
-            { uTable = postHasTagTable
-            , uWhere = \PostHasTag{..} ->
-                  (postHasTagPostID, postHasTagTagText) .=== toFields (postHasTagPostID', postHasTagTagText') .&& 
-                    postHasTagAdderID ./== toFields userID
-            , uUpdateWith = updateEasy $ \PostHasTag{..} -> 
-                  PostHasTag {postHasTagReportCount = postHasTagReportCount + 1, ..}
-            , uReturning = rReturning postHasTagReportCount
-            }
-          case counts of
-            [cnt] -> if cnt < id @Int 10
-              then pure (Just False)
-              else do
-                delete' $ Delete
-                  { dTable     = postHasTagTable
-                  , dWhere     = \PostHasTag{..} ->
-                        (postHasTagPostID, postHasTagTagText) .=== toFields (postHasTagPostID', postHasTagTagText')
-                  , dReturning = rCount
-                  }
-                -- Returning 0 means already deleted.
-                pure (Just True)
-            _ -> pure Nothing
+        counts <- update' $ Update
+          { uTable = postHasTagTable
+          , uWhere = \PostHasTag{..} ->
+                (postHasTagPostID, postHasTagTagText) .=== toFields (postHasTagPostID', postHasTagTagText') .&& 
+                  postHasTagAdderID ./== toFields userID
+          , uUpdateWith = updateEasy $ \PostHasTag{..} -> 
+                PostHasTag {postHasTagReportCount = postHasTagReportCount + 1, ..}
+          , uReturning = rReturning postHasTagReportCount
+          }
+        case counts of
+          [cnt] -> if cnt < id @Int 10
+            then pure (Just False)
+            else do
+              delete' $ Delete
+                { dTable     = postHasTagTable
+                , dWhere     = \PostHasTag{..} ->
+                      (postHasTagPostID, postHasTagTagText) .=== toFields (postHasTagPostID', postHasTagTagText')
+                , dReturning = rCount
+                }
+              -- Returning 0 means already deleted.
+              pure (Just True)
+          _ -> pure Nothing

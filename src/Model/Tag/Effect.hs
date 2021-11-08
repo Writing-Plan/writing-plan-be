@@ -11,7 +11,7 @@ import           Data.Kind              (Type)
 import           Model.Helper
 import           Model.PG
 import           Model.TH               (sendAll)
-import           Model.Tag.Type
+import           Model.Tag.Table
 import           Opaleye
 
 

@@ -6,6 +6,7 @@ module Model.TH where
 import           Control.Algebra                 (Has, send)
 import           Control.Applicative             (Applicative (liftA2))
 import           Control.Monad                   (forM, replicateM)
+import           Data.Aeson
 import           Data.Char                       (toLower)
 import           Data.Profunctor.Product.Default (Default (..))
 import           Data.Serialize                  (Serialize)
@@ -74,7 +75,8 @@ genNewtypeT nm hsTy pgTy = do
 
       -- newtype 'nameT' a = 'name' { 'unName' :: a } deriving (Functor, Eq, Show, Serialize)
       newtyD = NewtypeD [] nameT [PlainTV a] Nothing (RecC name [(unName, noBang, VarT a)])
-        [DerivClause Nothing (ConT <$> [''Functor, ''Eq, ''Show, ''Serialize, ''Foldable, ''Traversable])]
+        [DerivClause Nothing (ConT <$> 
+          [''Functor, ''Eq, ''Show, ''Serialize, ''Foldable, ''Traversable, ''FromJSON, ''ToJSON])]
       -- type 'name' = 'nameT' 'hsTy'
       hsSyn = TySynD name [] $ ConT nameT `AppT` ConT hsTy
 

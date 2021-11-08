@@ -36,13 +36,11 @@ dependencies:
 - aeson
 - containers
 - fused-effects
+- aeson-casing
 
 ghc-options:
 - -j
 - -O
-- -threaded
-- -rtsopts
-- -with-rtsopts=-N
 - -Wall
 - -Wcompat
 - -Wincomplete-record-updates
@@ -94,5 +92,9 @@ executables:
   writing-plan-be:
     main:                Main.hs
     source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
     dependencies:
     - writing-plan-be

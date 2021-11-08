@@ -2,39 +2,38 @@
 
 module Model.Post.Type where
 
-import           Data.Int                   (Int64)
+import           Data.Aeson.Casing
+import           Data.Aeson.TH
 import           Data.Profunctor.Product.TH (makeAdaptorAndInstance)
-import           Data.Text                  (Text)
-import           Model.F                    (F)
-import           Model.TH                   (genNewtypeT, makeTypeInstanceFWR)
-import           Model.User.Type
-import           Opaleye
+import           Model.Post.Table
+import           Model.Tag.Table
+import           Model.User.Table
+import           Model.UserTag.Table
 
-type Title   = Text
-type Content = Text
-
-genNewtypeT "PostID" ''Int64 ''SqlInt8
-makeAdaptorAndInstance "pPostID" ''PostIDT
-
-data PostT a b c d
-  = Post                -- ^ @TABLE post_table@
-    { postID       :: a -- ^ @post_id bigserial PRIMARY KEY@
-    , postAuthorID :: b -- ^ @post_author_id bigint REFERENCES blogger_table(blogger_id)@
-    , postTitle    :: c -- ^ @post_title text NOT NULL@
-    , postContent  :: d -- ^ @post_content text NOT NULL@
-    -- TODO: rating of the post
+data PostBriefT a b c d e
+  = PostBrief
+    { postBriefID      :: a
+    , postBriefAuthor  :: b
+    , postBriefTitle   :: c
+    , postBriefTag     :: d
+    , postBriefUserTag :: e
     }
 
-makeAdaptorAndInstance "pPost" ''PostT
+makeAdaptorAndInstance "pPostBrief" ''PostBriefT
+deriveJSON (aesonDrop (length ("postBrief" :: String)) snakeCase) ''PostBriefT
 
-type PostW = PostT (Maybe PostID) UserID Title Content
-type PostR = PostT PostID         UserID Title Content
-makeTypeInstanceFWR "Post"
+type PostBrief = PostBriefT PostID Username Title [TagText] [UserTagText]
 
-postTable :: Table (F PostW) (F PostR)
-postTable = table "post_table" $ pPost Post
-  { postID        = pPostID $ PostID (tableField "post_id")
-  , postAuthorID  = pUserID $ UserID (tableField "post_author_id")
-  , postTitle     = tableField "post_title"
-  , postContent   = tableField "post_content"
-  }
+data PostFullT a b c d e
+  = PostFull
+    { postFullAuthor  :: a
+    , postFullTitle   :: b
+    , postFullContent :: c
+    , postFullTag     :: d
+    , postFullUserTag :: e
+    }
+
+makeAdaptorAndInstance "pPostFull" ''PostFullT
+deriveJSON (aesonDrop (length ("postFull" :: String)) snakeCase) ''PostFullT
+
+type PostFull = PostFullT Username Title Content [TagText] [UserTagText]

@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Model.User.Type where
+module Model.User.Table where
 
 import           Data.ByteString            (ByteString)
 import           Data.Int                   (Int64)

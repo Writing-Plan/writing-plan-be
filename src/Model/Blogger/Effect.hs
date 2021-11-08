@@ -11,11 +11,11 @@ import           Control.Algebra
 import           Control.Monad.IO.Class (MonadIO)
 import           Data.Functor           (($>))
 import           Data.Kind              (Type)
-import           Model.Blogger.Type
+import           Model.Blogger.Table
 import           Model.Helper
 import           Model.PG
 import           Model.TH               (sendAll)
-import           Model.User.Type
+import           Model.User.Table
 import           Opaleye
 
 data Blogger (m :: Type -> Type) k where
@@ -41,7 +41,7 @@ instance Has ConnectionPool sig m => Algebra (Blogger :+: sig) (BloggerC m) wher
         \  blogger_url            text    NOT NULL UNIQUE, \
         \  blogger_allow_comments boolean NOT NULL \
         \);"
-      AddBlogger bloggerID bloggerUrl -> toMaybeUnit .  (==1) <$> insert Insert
+      AddBlogger bloggerID bloggerUrl -> toMaybeUnit . (==1) <$> insert Insert
         { iTable      = bloggerTable
         , iRows       = [toFields @Blogger_ Blogger{bloggerAllowComments = True, ..}]
         , iReturning  = rCount
