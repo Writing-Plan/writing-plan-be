@@ -10,6 +10,7 @@ module Model.PG
 
 import           Control.Algebra
 import           Control.Carrier.Reader
+import           Control.Effect.Lift
 import           Control.Monad                   (unless, void)
 import           Control.Monad.IO.Class          (MonadIO (..))
 import           Data.Functor                    (($>))
@@ -35,12 +36,12 @@ newtype WithPoolC a m k = WithPoolC { runWithPoolC :: ReaderC (Pool a) m k }
 runWithPool :: Pool a -> WithPoolC a m b -> m b
 runWithPool pool = runReader pool . runWithPoolC
 
-instance (MonadIO m, Algebra sig m) => Algebra (WithPool a :+: sig) (WithPoolC a m) where
+instance Has (Lift IO) sig m => Algebra (WithPool a :+: sig) (WithPoolC a m) where
   alg hdl sig ctx = case sig of
     R other -> WithPoolC (alg (runWithPoolC . hdl) (R other) ctx)
     L (WithPool f) -> do
       pool <- WithPoolC ask
-      a <- liftIO (pool `withResource` f)
+      a <- sendM (pool `withResource` f)
       pure (ctx $> a)
 
 
@@ -77,19 +78,19 @@ newtype PGC m a = PGC { runPGC :: ReaderC Connection m a }
 runPG :: Connection -> PGC m a -> m a
 runPG conn = runReader conn . runPGC
 
-instance (MonadIO m, Algebra sig m) => Algebra (PG :+: sig) (PGC m) where
+instance Has (Lift IO) sig m => Algebra (PG :+: sig) (PGC m) where
   alg hdl sig ctx = case sig of
     R other       -> PGC (alg (runPGC . hdl) (R other) ctx)
-    L pg -> fmap (ctx $>) $ PGC ask >>= \conn -> liftIO $ case pg of
+    L pg -> fmap (ctx $>) $ PGC ask >>= \conn -> sendM $ case pg of
+      (Select' s)     ->  runSelect conn s
+      (Insert' i)     ->  runInsert_ conn i
+      (Update' u)     ->  runUpdate_ conn u
+      (Delete' d)     ->  runDelete_ conn d
       InitTable' nm s -> do
         [[has]] <- query_ conn $
           "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = '" <> fromString nm <> "')"
         unless has $ void $ execute_ conn $ fromString s
         pure (Prelude.not has)
-      (Select' s)     ->  runSelect conn s
-      (Insert' i)     ->  runInsert_ conn i
-      (Update' u)     ->  runUpdate_ conn u
-      (Delete' d)     ->  runDelete_ conn d
 
 -- Not currently used. Just put here.
 

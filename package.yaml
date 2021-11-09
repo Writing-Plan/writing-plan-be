@@ -37,6 +37,8 @@ dependencies:
 - containers
 - fused-effects
 - aeson-casing
+- profunctors
+- comonad
 
 ghc-options:
 - -j

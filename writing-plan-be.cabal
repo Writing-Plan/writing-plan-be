@@ -28,6 +28,9 @@ library
   exposed-modules:
       Model.Blogger.Effect
       Model.Blogger.Table
+      Model.Comment.Effect
+      Model.Comment.Table
+      Model.Comment.Type
       Model.F
       Model.F.Family
       Model.Helper
@@ -40,6 +43,7 @@ library
       Model.Tag.Effect
       Model.Tag.Table
       Model.TH
+      Model.TH.Internal
       Model.User.Effect
       Model.User.Table
       Model.UserTag.Effect
@@ -90,6 +94,7 @@ library
     , base >=4.7 && <5
     , bytestring
     , cereal
+    , comonad
     , containers
     , directory
     , fused-effects
@@ -100,6 +105,7 @@ library
     , opaleye
     , postgresql-simple
     , product-profunctors
+    , profunctors
     , resource-pool
     , safe-exceptions
     , servant
@@ -157,6 +163,7 @@ executable writing-plan-be
     , base >=4.7 && <5
     , bytestring
     , cereal
+    , comonad
     , containers
     , directory
     , fused-effects
@@ -167,6 +174,7 @@ executable writing-plan-be
     , opaleye
     , postgresql-simple
     , product-profunctors
+    , profunctors
     , resource-pool
     , safe-exceptions
     , servant

@@ -1,24 +1,25 @@
-{-# LANGUAGE BlockArguments       #-}
 {-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
+
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 
 module Model.Post.Effect where
 
 import           Control.Algebra
-import           Control.Monad.IO.Class  (MonadIO)
-import           Data.Functor            (($>))
-import           Data.Kind               (Type)
-import           Data.List               (foldl1')
-import           Data.Maybe              (listToMaybe)
-import           Data.Text               (Text)
+import           Control.Monad.IO.Class (MonadIO)
+import           Data.Functor           (($>))
+import           Data.Kind              (Type)
+import           Data.List              (foldl1')
+import           Data.Maybe             (listToMaybe)
+import           Data.Text              (Text)
 import           Model.Blogger.Table
 import           Model.Helper
 import           Model.PG
 import           Model.Post.Table
 import           Model.Post.Type
 import           Model.PostHasTag.Table
-import           Model.TH                (sendAll)
+import           Model.TH               (sendAll)
 import           Model.Tag.Table
 import           Model.User.Table
 import           Model.UserTag.Table
@@ -57,7 +58,7 @@ instance Has ConnectionPool sig m => Algebra (Post :+: sig) (PostC m) where
         , iOnConflict = Just DoNothing
         }
 
-      GetPost postID' -> fmap (pPostFull $ PostFull id id id sequence sequence) . listToMaybe <$> select do
+      GetPost postID' -> fmap (fmap (pPostFull $ PostFull id id id sequence sequence) . listToMaybe) . select $ do
         let postIDF = toFields postID'
 
         Post{..} <- selectTable postTable
@@ -114,7 +115,7 @@ instance Has ConnectionPool sig m => Algebra (Post :+: sig) (PostC m) where
           where_ $ foldl1' (.&&) $ condAuthor ++ condKeyword
 
           pure $ PostBrief
-            { postBriefID      = postID
+            { postBriefId      = postID
             , postBriefAuthor  = userUsername
             , postBriefTitle   = postTitle
             , postBriefTag     = tags

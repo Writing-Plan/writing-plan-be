@@ -12,7 +12,7 @@ import           Model.UserTag.Table
 
 data PostBriefT a b c d e
   = PostBrief
-    { postBriefID      :: a
+    { postBriefId      :: a
     , postBriefAuthor  :: b
     , postBriefTitle   :: c
     , postBriefTag     :: d

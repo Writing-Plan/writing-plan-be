@@ -2,12 +2,13 @@
 
 module Model.User.Table where
 
-import           Data.ByteString            (ByteString)
-import           Data.Int                   (Int64)
-import           Data.Profunctor.Product.TH (makeAdaptorAndInstance)
-import           Data.Text                  (Text)
-import           Model.F                    (F)
-import           Model.TH                   (genNewtypeT, makeTypeInstanceFWR)
+import           Data.ByteString                 (ByteString)
+import           Data.Int                        (Int64)
+import           Data.Profunctor.Product.TH      (makeAdaptorAndInstance)
+import           Data.Text                       (Text)
+import           Model.F                         (F)
+import           Model.TH                        (genNewtypeT,
+                                                  makeTypeInstanceFWR)
 import           Opaleye
 
 type Username = Text
