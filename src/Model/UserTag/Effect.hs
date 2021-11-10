@@ -7,7 +7,6 @@ module Model.UserTag.Effect where
 
 import           Control.Algebra
 import           Control.Monad.IO.Class     (MonadIO)
-import           Data.Functor               (($>))
 import           Data.Kind                  (Type)
 import           Database.PostgreSQL.Simple (Connection)
 import           Model.Helper
@@ -17,6 +16,7 @@ import           Model.TH                   (sendAll)
 import           Model.User.Table
 import           Model.UserTag.Table
 import           Opaleye
+import Control.Comonad
 
 data UserTag (m :: Type -> Type) k where
   InitUserTagTable :: UserTag m Bool
@@ -42,38 +42,40 @@ instance Has (WithPool Connection) sig m => Algebra (UserTag :+: sig) (UserTagC 
         \  user_tag_post_id      bigint    REFERENCES post_table(post_id), \
         \  user_tag_text         text      NOT NULL, \
         \  user_tag_adder_id     bigint    REFERENCES user_table(user_id), \
-        \  user_tag_report_count int       NOT NULL, \
+        \  user_tag_reporters    bigint[]  NOT NULL DEFAULT '{}', \
         \  UNIQUE(user_tag_post_id, user_tag_text) \
         \);"
       AddUserTag userTagAdderID userTagPostID userTagText -> toMaybeUnit . (==1) <$> insert Insert
         { iTable      = userTagTable
-        , iRows       = [toFields @UserTagW UserTag{userTagID = Nothing, userTagReportCount = 0, ..}]
+        , iRows       = [toFields @UserTagW UserTag{userTagID = Nothing, userTagReporters = [], ..}]
         , iReturning  = rCount
         , iOnConflict = Just DoNothing
         }
       DelUserTag userTagAdderID' userTagPostID' userTagText' -> toMaybeUnit . (==1) <$> delete Delete
         { dTable     = userTagTable
-        , dWhere     = \UserTag{..} -> (userTagAdderID, userTagPostID, userTagText) .===
-              toFields (userTagAdderID', userTagPostID', userTagText')
+        , dWhere     = \UserTag{..} -> 
+              (userTagAdderID, userTagPostID, userTagText) .=== toFields (userTagAdderID', userTagPostID', userTagText')
         , dReturning = rCount
         }
       ReportUserTag userID userTagPostID' userTagText' -> withPG $ do
-        counts <- update' $ Update
+        reporterss :: [[UserID]] <- update' $ Update
           { uTable = userTagTable
-          , uWhere = \UserTag{..} -> (userTagPostID, userTagText) .=== toFields (userTagPostID', userTagText') .&&
-                userTagAdderID ./== toFields userID
+          , uWhere = \UserTag{..} -> 
+                (userTagPostID, userTagText) .=== toFields (userTagPostID', userTagText') .&&
+                userTagAdderID ./== toFields userID .&&
+                Opaleye.not (extract $ sqlElem <$> toFields userID <*> userTagReporters)
           , uUpdateWith = updateEasy $ \UserTag{..} ->
-                UserTag {userTagReportCount = userTagReportCount + 1, ..}
-          , uReturning = rReturning userTagReportCount
+                UserTag {userTagReporters = arrayPrepend <$> toFields userID <*> userTagReporters, ..}
+          , uReturning = rReturning userTagReporters
           }
-        case counts of
-          [cnt] -> if cnt < id @Int 10
+        case reporterss of
+          [reporters] -> if length reporters < 10
             then pure (Just False)
             else do
               delete' $ Delete
                 { dTable     = userTagTable
-                , dWhere     = \UserTag{..} -> (userTagPostID, userTagText) .===
-                      toFields (userTagPostID', userTagText')
+                , dWhere     = \UserTag{..} -> 
+                      (userTagPostID, userTagText) .=== toFields (userTagPostID', userTagText')
                 , dReturning = rCount
                 }
               -- Returning 0 means already deleted.

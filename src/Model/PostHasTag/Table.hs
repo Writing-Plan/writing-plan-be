@@ -15,18 +15,18 @@ genNewtypeT "PostHasTagID" ''Int64 ''SqlInt8
 makeAdaptorAndInstance "pPostHasTagID" ''PostHasTagIDT
 
 data PostHasTagT a b c d e
-  = PostHasTag                   -- ^ @TABLE post_has_tag_table@
-    { postHasTagID          :: a -- ^ @post_has_tag_id bigserial PRIMARY KEY@
-    , postHasTagPostID      :: b -- ^ @post_has_tag_post_id bigint REFERENCES post_table(post_id)@
-    , postHasTagTagText     :: c -- ^ @post_has_tag_tag_text bigint REFERENCES tag_table(tag_id)@
-    , postHasTagAdderID     :: d -- ^ @post_has_tag_user_id bigint REFERENCES user_table(user_id)@
-    , postHasTagReportCount :: e -- ^ @post_has_tag_report_count int NOT NULL@
+  = PostHasTag                 -- ^ @TABLE post_has_tag_table@
+    { postHasTagID        :: a -- ^ @post_has_tag_id bigserial PRIMARY KEY@
+    , postHasTagPostID    :: b -- ^ @post_has_tag_post_id bigint REFERENCES post_table(post_id)@
+    , postHasTagTagText   :: c -- ^ @post_has_tag_tag_text bigint REFERENCES tag_table(tag_id)@
+    , postHasTagAdderID   :: d -- ^ @post_has_tag_user_id bigint REFERENCES user_table(user_id)@
+    , postHasTagReporters :: e -- ^ @post_has_tag_reporters bigint[] NOT NULL DEFAULT '{}'@
     }
 
 makeAdaptorAndInstance "pPostHasTag" ''PostHasTagT
 
-type PostHasTagW = PostHasTagT (Maybe PostHasTagID) PostID TagText UserID Int
-type PostHasTagR = PostHasTagT PostHasTagID         PostID TagText UserID Int
+type PostHasTagW = PostHasTagT (Maybe PostHasTagID) PostID TagText UserID [UserID]
+type PostHasTagR = PostHasTagT PostHasTagID         PostID TagText UserID [UserID]
 makeTypeInstanceFWR "PostHasTag"
 
 postHasTagTable :: Table (F PostHasTagW) (F PostHasTagR)
@@ -35,5 +35,5 @@ postHasTagTable = table "post_table" $ pPostHasTag PostHasTag
   , postHasTagPostID      = pPostID       $ PostID       (tableField "post_has_tag_post_id")
   , postHasTagTagText     = pTagText      $ TagText      (tableField "post_has_tag_tag_text")
   , postHasTagAdderID     = pUserID       $ UserID       (tableField "post_has_tag_user_id")
-  , postHasTagReportCount = tableField "post_has_tag_report_count"
+  , postHasTagReporters = pUserID       $ UserID       (tableField "post_has_tag_reporters")
   }

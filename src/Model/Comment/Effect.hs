@@ -7,20 +7,21 @@ module Model.Comment.Effect where
 
 import           Control.Algebra
 import           Control.Comonad
-import           Control.Monad.IO.Class             (MonadIO)
-import           Data.Kind                          (Type)
-import           Data.Maybe                         (listToMaybe)
-import           Data.Text                          (Text)
+import           Control.Monad.IO.Class (MonadIO)
+import           Data.Kind              (Type)
+import           Data.Maybe             (listToMaybe)
+import           Data.Text              (Text)
 import           Model.Comment.Table
 import           Model.Comment.Type
 import           Model.Helper
 import           Model.PG
 import           Model.Post.Table
-import           Model.TH                           (sendAll)
+import           Model.TH               (sendAll)
 import           Model.User.Table
 import           Opaleye
 
 data Comment (m :: Type -> Type) k where
+  InitCommentTable :: Comment m Bool
   AddComment    :: UserID -> PostID -> Text -> Comment m (Maybe CommentID)
   DelComment    :: UserID -> CommentID -> Comment m (Maybe ())
   ReportComment :: UserID -> CommentID -> Comment m (Maybe Bool)
@@ -38,6 +39,15 @@ instance Has ConnectionPool sig m => Algebra (Comment :+: sig) (CommentC m) wher
   alg hdl sig ctx = case sig of
     R other -> CommentC (alg (runComment . hdl) other ctx)
     L comment -> (ctx $>) <$> case comment of
+      InitCommentTable -> initTable "comment_table" 
+        "INSERT TABLE comment_table ( \
+        \  comment_id        bigserial                PRIMARY KEY, \
+        \  comment_post_id   bigint                   REFERENCES post_table(post_id), \
+        \  comment_user_id   bigint                   REFERENCES user_table(user_id), \
+        \  comment_content   text                     NOT NULL, \
+        \  comment_created   timestamp with time zone NOT NULL DEFAULT now(), \
+        \  comment_reporters bigint[]                 NOT NULL DEFAULT '{}' \
+        \); "
       AddComment commentUserID commentPostID commentContent -> listToMaybe <$> insert Insert
         { iTable      = commentTable
         , iRows       = [toFields @CommentW Comment{commentID = Nothing, commentCreated = Nothing, commentReporters = [], ..}]

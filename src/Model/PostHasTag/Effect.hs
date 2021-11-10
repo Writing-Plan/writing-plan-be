@@ -1,12 +1,13 @@
 {-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 
 module Model.PostHasTag.Effect where
 
 import           Control.Algebra
+import           Control.Comonad
 import           Control.Monad.IO.Class (MonadIO)
-import           Data.Functor           (($>))
 import           Data.Kind              (Type)
 import           Model.Helper
 import           Model.PG
@@ -45,29 +46,30 @@ instance Has ConnectionPool sig m => Algebra (PostHasTag :+: sig) (PostHasTagC m
         \);"
       AddTagForPost postHasTagAdderID postHasTagPostID postHasTagTagText -> toMaybeUnit . (==1) <$> insert Insert
         { iTable      = postHasTagTable
-        , iRows       = [toFields @PostHasTagW PostHasTag{postHasTagID = Nothing, postHasTagReportCount = 0, ..}]
+        , iRows       = [toFields @PostHasTagW PostHasTag{postHasTagID = Nothing, postHasTagReporters = [], ..}]
         , iReturning  = rCount
         , iOnConflict = Just DoNothing
         }
       DelTagForPost postHasTagAdderID' postHasTagPostID' postHasTagTagText' -> toMaybeUnit . (==1) <$> delete Delete
         { dTable     = postHasTagTable
         , dWhere     = \PostHasTag{..} ->
-              (postHasTagAdderID, postHasTagPostID, postHasTagTagText) .=== 
+              (postHasTagAdderID, postHasTagPostID, postHasTagTagText) .===
                 toFields (postHasTagAdderID', postHasTagPostID', postHasTagTagText')
         , dReturning = rCount
         }
       ReportTagForPost userID postHasTagPostID' postHasTagTagText' -> withPG $ do
-        counts <- update' $ Update
+        reporterss :: [[UserID]]  <- update' $ Update
           { uTable = postHasTagTable
           , uWhere = \PostHasTag{..} ->
-                (postHasTagPostID, postHasTagTagText) .=== toFields (postHasTagPostID', postHasTagTagText') .&& 
-                  postHasTagAdderID ./== toFields userID
-          , uUpdateWith = updateEasy $ \PostHasTag{..} -> 
-                PostHasTag {postHasTagReportCount = postHasTagReportCount + 1, ..}
-          , uReturning = rReturning postHasTagReportCount
+                (postHasTagPostID, postHasTagTagText) .=== toFields (postHasTagPostID', postHasTagTagText') .&&
+                postHasTagAdderID ./== toFields userID .&&
+                Opaleye.not (extract $ sqlElem <$> toFields userID <*> postHasTagReporters)
+          , uUpdateWith = updateEasy $ \PostHasTag{..} ->
+                PostHasTag {postHasTagReporters = arrayPrepend <$> toFields userID <*> postHasTagReporters, ..}
+          , uReturning = rReturning postHasTagReporters
           }
-        case counts of
-          [cnt] -> if cnt < id @Int 10
+        case reporterss of
+          [reporters] -> if length reporters < 10
             then pure (Just False)
             else do
               delete' $ Delete

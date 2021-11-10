@@ -23,7 +23,7 @@ data CommentT a b c d e f
     , commentUserID    :: c -- ^ @comment_user_id bigint REFERENCES user_table(user_id)@
     , commentContent   :: d -- ^ @comment_content text NOT NULL@
     , commentCreated   :: e -- ^ @comment_created timestamp with time zone NOT NULL DEFAULT now()@
-    , commentReporters :: f -- ^ @comment_reporters bigint[] DEFAULT '{}'@
+    , commentReporters :: f -- ^ @comment_reporters bigint[] NOT NULL DEFAULT '{}'@
     }
 
 makeAdaptorAndInstance "pComment" ''CommentT
